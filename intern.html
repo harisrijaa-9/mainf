@@ -1,71 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>YouTube Search Volume</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-      }
-
-      input[type="text"] {
-        width: 300px;
-        padding: 5px;
-        font-size: 16px;
-      }
-
-      button {
-        margin-top: 10px;
-        padding: 8px 15px;
-        font-size: 16px;
-      }
-
-      p {
-        margin-top: 20px;
-        font-size: 18px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>YouTube Search Volume</h1>
-    <input type="text" id="keywordInput" placeholder="Enter a keyword" />
+<html>
+<head>
+    <title>Keyword Search Volume</title>
+    <!-- Axios for making API requests -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Keyword Search Volume</h1>
+    <input type="text" id="keywordInput" placeholder="Enter keyword">
     <button onclick="getSearchVolume()">Get Search Volume</button>
-    <p id="searchVolumeOutput"></p>
+
+    <div id="searchVolumeResult"></div>
 
     <script>
-      function getSearchVolume() {
-        const keyword = document.getElementById("keywordInput").value;
-        if (keyword.trim() === "") {
-          alert("Please enter a keyword.");
-          return;
+        async function getSearchVolume() {
+            const keyword = document.getElementById('keywordInput').value.trim();
+
+            if (keyword === '') {
+                alert('Please enter a keyword');
+                return;
+            }
+
+            const apiUrl = `/getSearchVolume?keyword=${encodeURIComponent(keyword)}`;
+
+            try {
+                const response = await axios.get(apiUrl);
+                const data = response.data;
+
+                if (data.searchVolume !== undefined) {
+                    const searchVolume = data.searchVolume;
+                    showSearchVolumeResult(searchVolume);
+                } else {
+                    alert('Keyword not found or search volume data not available.');
+                }
+            } catch (error) {
+                console.error('Error fetching search volume:', error);
+                alert('Error fetching search volume. Please try again later.');
+            }
         }
 
-        fetchSearchVolume(keyword)
-          .then((searchVolume) => {
-            const output = document.getElementById("searchVolumeOutput");
-            output.textContent = `Search volume for '${keyword}': ${searchVolume}`;
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-          });
-      }
-
-      function fetchSearchVolume(keyword) {
-        const apiKey = process.env.YOUR_API_KEY; // Get the API key from the environmental variable
-        const url = `https://www.googleapis.com/youtube/v3/search?part=id&q=${encodeURIComponent(
-          keyword
-        )}&type=video&maxResults=50&key=${apiKey}`;
-
-        return fetch(url)
-          .then((response) => response.json())
-          .then((data) => data.pageInfo.totalResults || 0)
-          .catch((error) => {
-            console.error("Error fetching search volume:", error);
-            throw error;
-          });
-      }
+        function showSearchVolumeResult(searchVolume) {
+            const searchVolumeResultDiv = document.getElementById('searchVolumeResult');
+            searchVolumeResultDiv.innerText = `Approx. Search Volume: ${searchVolume}`;
+        }
     </script>
-  </body>
+</body>
 </html>
